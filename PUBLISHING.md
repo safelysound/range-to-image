@@ -13,7 +13,7 @@ These placeholders must be replaced before you publish:
   - `author` — your name or organization (shown on the listing).
   - `homepage_url` — your site or the repo URL (or remove the line).
   - `browser_specific_settings.gecko.id` — change `sheets-range-to-image@local.extension`
-    to an ID you control, e.g. `sheets-range-to-image@yourdomain.com`. This ID is
+    to an ID you control, e.g. `sheets-range-to-image@safelysound.com`. This ID is
     permanent for the life of the add-on, so pick it carefully.
 - **`LICENSE`** — replace `Your Name` with the copyright holder.
 - **`PRIVACY.md`** — replace the contact email. You'll paste this policy (or a
@@ -112,6 +112,8 @@ This produces a signed-ready ZIP in `web-ext-artifacts/`
 
 - The source code here is **not minified**, so no separate "source code upload"
   is required for review.
-- Minimum supported Firefox is set to **127.0** in `manifest.json` because the
-  reconstruction path relies on `navigator.clipboard.read()` reading `text/html`,
-  which is enabled by default from Firefox 127.
+- Minimum supported Firefox is set to **142.0** in `manifest.json`. The
+  reconstruction path relies on `navigator.clipboard.read()` reading `text/html`
+  (Firefox 127+), but the required `data_collection_permissions` manifest key is
+  only supported from Firefox 140 (desktop) / 142 (Android), so 142.0 is the
+  lowest version that supports everything this add-on declares.

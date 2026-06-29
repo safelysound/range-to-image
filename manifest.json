@@ -3,13 +3,16 @@
   "name": "Sheets Range to Image",
   "version": "1.0.0",
   "description": "Export a selected range of cells in Google Sheets as a high-quality PNG (with full emoji support).",
-  "author": "Justin Day",
-  "homepage_url": "https://example.com/sheets-range-to-image",
+  "author": "safelysound",
+  "homepage_url": "https://github.com/safelysound/range-to-image",
 
   "browser_specific_settings": {
     "gecko": {
-      "id": "sheets-range-to-image@local.extension",
-      "strict_min_version": "127.0"
+      "id": "sheets-range-to-image@safelysound.com",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   },
 
@@ -31,5 +34,7 @@
       "css": ["content.css"],
       "run_at": "document_idle"
     }
-  ]
+  ],
+
+  "web_accessible_resources": ["icons/icon.svg"]
 }

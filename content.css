@@ -3,17 +3,49 @@
  * All selectors are prefixed with `szi-` to avoid clashing with Google Sheets.
  * ------------------------------------------------------------------------- */
 
-/* Menu item (reuses Google's .goog-menuitem look; we only add layout bits). */
+/* Menu item (reuses Google's .goog-menuitem look; we only add layout bits).
+ * Layout: [icon] [label] ……… [arrow]. The arrow is pushed to the far right
+ * with margin-left:auto; the icon + label sit together on the left. */
 .szi-menuitem-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
 }
+.szi-label {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+/* Match Google's native .goog-submenu-arrow: ~70% of the 14px menu font, solid
+ * black at 50% opacity (reads as gray), pushed to the right edge. We keep our
+ * flex approach (margin-left:auto) rather than Google's absolute positioning. */
 .szi-arrow {
-  color: #5f6368;
-  font-size: 11px;
-  margin-left: 12px;
+  font-size: 70%;
+  color: #000;
+  opacity: 0.5;
+  text-align: right;
+  margin-left: auto !important;
+  margin-right: 10px;
+}
+
+/* Leading icon shown before the label, matching native icon'd menu items. */
+.szi-icon {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Trim Google's wide menu gutter on our top-level item so its icon sits near
+ * the left edge (matching the submenu). !important is needed because Google
+ * injects its menu CSS at runtime, after our stylesheet. Note: this places our
+ * icon slightly left of the native items' icons in the same menu. */
+.szi-menuitem.goog-menuitem {
+  padding-left: 0 !important;
+}
+.szi-menuitem .szi-menuitem-content {
+  padding-left: 10px !important;
 }
 
 /* Hover submenu popup. */
@@ -23,7 +55,27 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 .szi-subitem-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   white-space: nowrap;
+}
+/* Our standalone submenu popup doesn't need Google's wide checkmark gutter
+ * (Google puts it as left padding on the menu item and big right padding for
+ * accelerators). Zero those out and set our own modest inset on the content so
+ * the icon + label sit near the left edge. Extra class specificity ensures
+ * these win over Google's .goog-menu / .goog-menuitem rules. */
+.szi-submenu.goog-menu {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.szi-submenu .szi-subitem {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.szi-submenu .szi-subitem-content {
+  padding-left: 10px !important;
+  padding-right: 16px !important;
 }
 
 /* ---- Loading toast (bottom-right) ---------------------------------------- */

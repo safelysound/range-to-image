@@ -18,6 +18,11 @@
   const EXT_NAME = "Sheets Range to Image";
   const SUB_LABEL = "Convert Selected Range to Image";
 
+  // Resolve the packaged icon to a moz-extension:// URL (declared in
+  // web_accessible_resources so the injected <img> may load it).
+  const EXT_API = typeof browser !== "undefined" ? browser : chrome;
+  const ICON_URL = EXT_API.runtime.getURL("icons/icon.svg");
+
   // ---------------------------------------------------------------------------
   // 1. Menu injection
   // ---------------------------------------------------------------------------
@@ -99,8 +104,9 @@
     item.setAttribute("role", "menuitem");
     item.innerHTML =
       '<div class="goog-menuitem-content szi-menuitem-content">' +
+      '<img class="szi-icon" alt="" />' +
       '<span class="szi-label"></span>' +
-      '<span class="szi-arrow">▸</span>' +
+      '<span class="szi-arrow">►</span>' +
       "</div>";
     item.querySelector(".szi-label").textContent = EXT_NAME;
 
@@ -115,6 +121,11 @@
     });
 
     menu.insertBefore(item, menu.firstChild);
+
+    // Set the icon last and defensively — a problem loading it must never
+    // prevent the hover/click handlers above from being wired up.
+    const icon = item.querySelector(".szi-icon");
+    if (icon) icon.src = ICON_URL;
   }
 
   function showSubmenu(anchor) {
@@ -125,9 +136,12 @@
     sub.className = "goog-menu goog-menu-vertical szi-submenu";
     sub.innerHTML =
       '<div class="goog-menuitem szi-subitem" role="menuitem">' +
-      '<div class="goog-menuitem-content szi-subitem-content"></div>' +
+      '<div class="goog-menuitem-content szi-subitem-content">' +
+      '<img class="szi-icon" alt="" />' +
+      '<span class="szi-sublabel"></span>' +
+      "</div>" +
       "</div>";
-    sub.querySelector(".szi-subitem-content").textContent = SUB_LABEL;
+    sub.querySelector(".szi-sublabel").textContent = SUB_LABEL;
 
     sub.style.position = "fixed";
     sub.style.top = rect.top + "px";
@@ -154,6 +168,10 @@
       hideSubmenu();
       convertSelectionToImage();
     });
+
+    // Set the icon last and defensively — see note in injectMenuItem.
+    const subIcon = sub.querySelector(".szi-icon");
+    if (subIcon) subIcon.src = ICON_URL;
 
     // If the submenu would run off the right edge, flip it to the left.
     const subRect = sub.getBoundingClientRect();
@@ -282,9 +300,10 @@
   async function renderHtmlTableToImage(html) {
     const SCALE = 3; // supersample for crisp, high-quality output
 
-    const tpl = document.createElement("template");
-    tpl.innerHTML = html;
-    const table = tpl.content.querySelector("table");
+    // Parse the clipboard HTML into an inert document. DOMParser never executes
+    // scripts or loads resources, so this is safe for untrusted markup.
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const table = doc.querySelector("table");
     if (!table) return null;
 
     // Build an off-screen wrapper: any <style> blocks from Sheets + the table.
@@ -293,7 +312,7 @@
     wrapper.style.cssText =
       "position:fixed;left:-100000px;top:0;display:inline-block;margin:0;padding:0;background:#ffffff;";
 
-    tpl.content.querySelectorAll("style").forEach((s) => wrapper.appendChild(s.cloneNode(true)));
+    doc.querySelectorAll("style").forEach((s) => wrapper.appendChild(s.cloneNode(true)));
 
     const tableClone = table.cloneNode(true);
     tableClone.style.borderCollapse = "collapse";
@@ -302,6 +321,17 @@
     tableClone.setAttribute("cellpadding", "0");
     // Drop any embedded images — they would taint the canvas and block export.
     tableClone.querySelectorAll("img").forEach((im) => im.remove());
+
+    // Google Sheets cells don't wrap by default — text overflows/clips and the
+    // row keeps its declared height. As a plain HTML table the default is
+    // white-space:normal, so text wraps and (since row "height" is only a
+    // minimum) the row grows taller than the sheet. Force nowrap on cells that
+    // don't explicitly opt into wrapping, so rows keep Sheets' height.
+    tableClone.querySelectorAll("td, th").forEach((cell) => {
+      const wraps = cell.style.whiteSpace || cell.style.overflowWrap || cell.style.wordWrap;
+      if (!wraps) cell.style.whiteSpace = "nowrap";
+    });
+
     wrapper.appendChild(tableClone);
 
     document.body.appendChild(wrapper);
